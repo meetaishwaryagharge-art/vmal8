@@ -1,0 +1,14 @@
+VMAL website - Firebase setup (do these once)
+
+1. Firebase Console > Authentication > Sign-in method: enable "Email/Password" (and "Google" if you want that button).
+2. Authentication > Users > Add user: email vmalhomecareproducts@gmail.com + a password. (Without this user, login can never work.)
+3. Authentication > Settings > Authorized domains: make sure your website domain (e.g. vmal-92673.web.app, vmal.in) is listed.
+4. Firestore Database: create it if not created (Build > Firestore Database > Create database).
+5. Upload ALL files in this folder to the site, then publish the new rules:
+       firebase deploy --only hosting,firestore:rules
+   (Rules are firestore.rules. Without this step the dashboard shows "permission-denied" and forms cannot save.)
+6. Open  https://YOUR-DOMAIN/login.html  (never double-click the file; Firebase does not work from file://).
+7. Dashboard > Products > "Import current 6 products" once. After that, edits there change the website.
+
+Files: index/about/why/products/contact.html (public pages), site-firebase.js (shared Firebase code for all pages),
+firebase-config.js, login.html, dashboard.html, firestore.rules, firebase.json, logo.png.

@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard | VMAL Home Care Products</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g:#2f8d32;--gd:#1f6b25;--r:#e0161b;--ink:#1d1d1b;--mut:#5a5a56;--cream:#fdf6e6;--mint:#eaf5ec;--line:#e8ece8}
+*{box-sizing:border-box}
+body{margin:0;display:grid;grid-template-columns:230px 1fr;min-height:100vh;font:14px/1.55 Poppins,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--cream)}
+aside{background:var(--gd);color:#fff;padding:18px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:4px}
+aside img{width:130px;background:#fff;border-radius:12px;padding:8px;margin:0 auto 16px}
+aside button{background:none;border:0;color:#fff;text-align:left;padding:10px 12px;border-radius:8px;font:500 14px Poppins,sans-serif;cursor:pointer;opacity:.85}
+aside button:hover,aside button.on{background:#ffffff22;opacity:1}
+aside .me{margin-top:auto;font-size:12px;opacity:.8;word-break:break-all;padding:0 12px}
+main{padding:clamp(16px,3vw,36px);min-width:0}
+h1{margin:0 0 4px;font-size:24px}.sub{margin:0 0 22px;color:var(--mut)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:26px}
+.card,.panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.card b{display:block;font-size:30px;line-height:1.2;color:var(--gd)}.card.red b{color:var(--r)}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{background:var(--mint);font-weight:600}tr:last-child td{border:0}
+.wrap{overflow-x:auto}
+.b{padding:8px 14px;border:0;border-radius:8px;background:var(--g);color:#fff;font:500 13px Poppins,sans-serif;cursor:pointer}
+.b:hover{background:var(--gd)}.b.o{background:#fff;color:var(--ink);border:1px solid var(--line)}.b.d{background:#fff;color:var(--r);border:1px solid #f3c4c6}
+.tag{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;background:var(--mint);color:var(--gd)}.tag.off{background:#eee;color:#777}.tag.new{background:#fde3e3;color:var(--r)}
+.enq{margin-bottom:12px}.enq p{margin:8px 0;white-space:pre-wrap}.enq .m{color:var(--mut);font-size:13px}
+label{display:block;font-weight:500;margin:12px 0 5px}
+input,select,textarea{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;font:inherit;background:#fff}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid #2f8d3255;border-color:var(--g)}
+textarea{min-height:110px;resize:vertical}
+dialog{border:0;border-radius:14px;padding:22px;width:min(460px,92vw)}dialog::backdrop{background:#0006}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.acts{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+#err{display:none;margin-bottom:16px;padding:12px 16px;border-radius:10px;background:#fde3e3;color:#9d1015;border:1px solid #f3c4c6}#err.on{display:block}
+.hint{color:var(--mut);font-size:12px;margin:4px 0 0}.thumb{width:44px;height:44px;border-radius:8px;object-fit:contain;background:#fff;border:1px solid var(--line);vertical-align:middle;margin-right:10px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:99px;opacity:0;pointer-events:none;transition:opacity .2s}#toast.on{opacity:1}
+@media(max-width:800px){body{grid-template-columns:1fr}aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center}aside img{width:90px;margin:0 8px 0 0}aside .me{display:none}}
+</style></head>
+<body>
+<aside>
+  <img src="logo.png" alt="VMAL">
+  <button data-v="overview" class="on">Overview</button>
+  <button data-v="products">Products</button>
+  <button data-v="enquiries">Enquiries</button>
+  <button data-v="orders">Orders</button>
+  <button data-v="content">Site Content</button>
+  <button id="out">Sign out</button>
+  <div class="me" id="me"></div>
+</aside>
+<main><div id="err" role="alert"></div><div id="main"><p>Loading…</p></div></main>
+
+<dialog id="dlg"><form id="pf">
+  <h2 style="margin:0" id="dt">Product</h2>
+  <label>Name</label><input name="name" required>
+  <label>Category</label><input name="cat" placeholder="e.g. Home Care" required>
+  <label>Short description</label><input name="short">
+  <div class="two"><div><label>Price (₹)</label><input name="price" type="number" min="0" step="any" required></div><div><label>Old price (₹)</label><input name="old" type="number" min="0" step="any"></div></div>
+  <label>Image URL (optional)</label><input name="imageUrl" type="url" placeholder="https://…  or  logo.png">
+  <p class="hint">Leave empty to keep the existing picture. New products without an image show the VMAL logo.</p>
+  <label>Status</label><select name="active"><option value="1">Active (visible)</option><option value="0">Hidden</option></select>
+  <div class="acts"><button type="button" class="b o" id="cx">Cancel</button><button class="b">Save</button></div>
+</form></dialog>
+<div id="toast" role="status"></div>
+
+<script type="module">
+import {auth,db,ADMIN_EMAILS} from "./firebase-config.js";
+import {onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {collection,doc,addDoc,setDoc,deleteDoc,updateDoc,getDoc,onSnapshot,query,orderBy,serverTimestamp,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const $=s=>document.querySelector(s),main=$('#main');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const toast=t=>{const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2400)};
+const showErr=e=>{
+  const m=e&&e.code==='permission-denied'
+    ?'Firestore blocked the request (permission-denied). Fix: run "firebase deploy --only firestore:rules" so the new firestore.rules are live, and sign in with the email listed in ADMIN_EMAILS and in the rules.'
+    :(e&&e.code==='failed-precondition'?'Firestore needs an index or is not created yet: '+e.message:(e&&e.message)||String(e));
+  $('#err').textContent=m;$('#err').classList.add('on');
+};
+const clearErr=()=>$('#err').classList.remove('on');
+if(location.protocol==='file:'){main.innerHTML='<h1>Open this page through a web address</h1><div class="panel">Firebase cannot run from a file:// path. Use <b>firebase serve</b>, VS Code Live Server, or your deployed *.web.app link.</div>'}
+
+let started=false,view='overview',products=[],enq=[],orders=[],editId=null;
+const KEYS=['toilet','dish','floor','glass','phenyl','mop','wiper'];
+const SEED=[["toilet","Toilet Cleaner","Home Care","Removes tough stains & keeps toilet fresh.",99,129],["dish","Dish Wash Gel","Kitchen Care","Powerful grease removal for sparkling dishes.",79,99],["floor","Floor Cleaner","Floor Care","Deep cleaning & long lasting freshness.",89,119],["glass","Glass Cleaner","Glass Care","Streak-free shine for a clearer view.",69,89],["phenyl","Phenyl","Disinfectant","Keeps your home bacteria free.",59,79],["mop","Floor Mop","Cleaning Tools","Absorbent cotton mop for effortless cleaning.",149,199],["wiper","Floor Wiper","Cleaning Tools","High-efficiency floor wiper for a streak-free finish.",149,199]];
+const PAGES={home:'Home (index.html)',about:'About Us (about.html)',why:'Why VMAL (why.html)',products:'Products (products.html)',contact:'Contact (contact.html)'};
+const inr=n=>'₹'+Number(n||0).toLocaleString('en-IN');
+
+onAuthStateChanged(auth,u=>{
+  if(!u||!ADMIN_EMAILS.map(x=>x.toLowerCase()).includes((u.email||'').toLowerCase())){
+    if(u)signOut(auth);location.replace('login.html'+(u?'?denied=1':''));return}
+  $('#me').textContent=u.email;
+  if(started)return;started=true;
+  onSnapshot(collection(db,'products'),s=>{clearErr();
+    products=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+    backfillKeys();soft()},showErr);
+  onSnapshot(query(collection(db,'enquiries'),orderBy('createdAt','desc')),s=>{enq=s.docs.map(d=>({id:d.id,...d.data()}));soft()},showErr);
+  onSnapshot(query(collection(db,'orders'),orderBy('createdAt','desc')),s=>{orders=s.docs.map(d=>({id:d.id,...d.data()}));soft()},showErr);
+});
+
+// Products created earlier with random IDs get a "key" so the public site can match them to its built-in cards.
+function backfillKeys(){
+  products.forEach(p=>{
+    if(p.key)return;
+    const s=SEED.find(x=>x[1].toLowerCase()===String(p.name).trim().toLowerCase());
+    if(s)updateDoc(doc(db,'products',p.id),{key:s[0]}).catch(()=>{});
+  });
+}
+// Re-render on data changes, but never wipe the Site Content form while it is being edited.
+function soft(){if(view!=='content')render()}
+
+document.querySelector('aside').onclick=e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.id==='out')return signOut(auth);
+  view=b.dataset.v;document.querySelectorAll('aside [data-v]').forEach(x=>x.classList.toggle('on',x===b));render();
+};
+
+function render(){
+  if(view==='overview'){
+    const nw=enq.filter(e=>(e.status||'new')==='new').length,no=orders.filter(e=>(e.status||'new')==='new').length;
+    main.innerHTML=`<h1>Overview</h1><p class="sub">A quick look at your website.</p>
+    <div class="cards"><div class="card"><b>${products.length}</b>Products</div><div class="card"><b>${products.filter(p=>p.active!==false).length}</b>Visible on site</div><div class="card red"><b>${nw}</b>New enquiries</div><div class="card red"><b>${no}</b>New orders</div></div>
+    <h2 style="font-size:17px">Latest enquiries</h2>${enq.slice(0,4).map(enqCard).join('')||'<p class="sub">No enquiries yet.</p>'}
+    <h2 style="font-size:17px">Latest orders</h2>${orders.slice(0,3).map(orderCard).join('')||'<p class="sub">No orders yet.</p>'}`;
+  }
+  if(view==='products'){
+    main.innerHTML=`<div class="bar"><div><h1>Products</h1><p class="sub" style="margin:0">Changes here appear on the Home and Products pages of your website.</p></div><div>${products.length?'':'<button class="b o" data-act="seed">Import current 6 products</button> '}<button class="b" data-act="edit">+ Add product</button></div></div>
+    ${products.length?'':'<div class="panel" style="margin-bottom:14px">No products saved yet, so the website is showing its built-in 6 products. Click <b>Import current 6 products</b>, then edit prices and names here.</div>'}
+    <div class="wrap"><table><tr><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th></th></tr>
+    ${products.map(p=>`<tr><td>${p.imageUrl?`<img class="thumb" src="${esc(p.imageUrl)}" alt="">`:''}<b>${esc(p.name)}</b><br><small>${esc(p.short)}</small></td><td>${esc(p.cat)}</td><td>${inr(p.price)} ${p.old?`<s style="color:#999">${inr(p.old)}</s>`:''}</td><td><span class="tag ${p.active===false?'off':''}">${p.active===false?'Hidden':'Active'}</span></td><td style="white-space:nowrap"><button class="b o" data-act="edit" data-id="${p.id}">Edit</button> <button class="b o" data-act="tog" data-id="${p.id}">${p.active===false?'Show':'Hide'}</button> <button class="b d" data-act="del" data-id="${p.id}">Delete</button></td></tr>`).join('')||'<tr><td colspan="5">No products yet.</td></tr>'}</table></div>`;
+  }
+  if(view==='enquiries'){
+    main.innerHTML=`<h1>Enquiries</h1><p class="sub">Messages sent from your Contact page and the Shop popup.</p>${enq.map(enqCard).join('')||'<p class="sub">No enquiries yet.</p>'}`;
+  }
+  if(view==='orders'){
+    main.innerHTML=`<h1>Orders</h1><p class="sub">Orders placed from the cart or Buy Now popup.</p>${orders.map(orderCard).join('')||'<p class="sub">No orders yet.</p>'}`;
+  }
+  if(view==='content'){
+    main.innerHTML=`<h1>Site Content</h1><p class="sub">Edit the text shown on each page. Empty fields keep the page's built-in text.</p><div class="panel" style="max-width:640px">
+    <label>Page</label><select id="pg">${Object.entries(PAGES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>
+    <label>Main heading</label><input id="c-h"><p class="hint">The big title at the top of the page (replaces the built-in title).</p>
+    <label>Sub heading (text under the main heading)</label><input id="c-s">
+    <label>Intro paragraph (Home page "About VMAL" section only)</label><textarea id="c-b"></textarea>
+    <div class="two"><div><label>Contact email</label><input id="c-e" type="email"></div><div><label>Phone (shown on Contact page)</label><input id="c-p"></div></div>
+    <label>Address (shown in the "Visit Us" card)</label><input id="c-a"><div class="acts"><button class="b" data-act="savec">Save changes</button></div></div>`;
+    loadContent();
+  }
+}
+const stSel=(c,id,st,opts)=>`<select data-act="${c}" data-id="${id}" style="width:auto">${opts.map(o=>`<option ${st===o?'selected':''}>${o}</option>`).join('')}</select>`;
+function enqCard(e){
+  const st=e.status||'new',d=e.createdAt?.toDate?.().toLocaleString('en-IN')||'just now';
+  return `<div class="card enq"><div class="bar" style="margin:0"><b>${esc(e.name)} <span class="tag ${st==='new'?'new':''}">${esc(st)}</span></b><span class="m">${d}</span></div>
+  <div class="m">${esc(e.type)} · <a href="mailto:${esc(e.email)}">${esc(e.email)}</a>${e.phone?' · '+esc(e.phone):''}</div><p>${esc(e.message)}</p>
+  ${stSel('st',e.id,st,['new','replied','closed'])}
+  <a class="b o" style="text-decoration:none;margin-left:6px" href="mailto:${esc(e.email)}?subject=Re: ${esc(e.type)}">Reply</a> <button class="b d" data-act="edel" data-id="${e.id}">Delete</button></div>`;
+}
+function orderCard(o){
+  const st=o.status||'new',d=o.createdAt?.toDate?.().toLocaleString('en-IN')||'just now';
+  return `<div class="card enq"><div class="bar" style="margin:0"><b>${esc(o.name)} <span class="tag ${st==='new'?'new':''}">${esc(st)}</span></b><span class="m">${d}</span></div>
+  <div class="m">${esc(o.phone)}${o.email?' · <a href="mailto:'+esc(o.email)+'">'+esc(o.email)+'</a>':''}</div>
+  <p>${(o.items||[]).map(i=>esc(i.name)+' ('+esc(i.size)+') × '+esc(i.qty)+' = '+inr(i.price*i.qty)).join('\n')}\n<b>Total: ${inr(o.total)}</b></p>
+  <p class="m">Deliver to: ${esc(o.address)} – ${esc(o.pincode)}</p>
+  ${stSel('ost',o.id,st,['new','confirmed','shipped','delivered','cancelled'])} <button class="b d" data-act="odel" data-id="${o.id}">Delete</button></div>`;
+}
+async function loadContent(){
+  const k=$('#pg').value;
+  try{const s=await getDoc(doc(db,'content',k)),d=s.exists()?s.data():{};
+    [['h','heading'],['s','subheading'],['b','body'],['e','email'],['p','phone'],['a','address']].forEach(([i,f])=>$('#c-'+i).value=d[f]||'')}
+  catch(x){showErr(x)}
+}
+main.onchange=e=>{
+  if(e.target.id==='pg')loadContent();
+  const a=e.target.dataset.act,id=e.target.dataset.id;
+  if(a==='st')updateDoc(doc(db,'enquiries',id),{status:e.target.value}).then(()=>toast('Status updated')).catch(x=>toast(x.message));
+  if(a==='ost')updateDoc(doc(db,'orders',id),{status:e.target.value}).then(()=>toast('Order updated')).catch(x=>toast(x.message));
+};
+main.onclick=async e=>{
+  const b=e.target.closest('button[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
+  try{
+    if(a==='seed'){const w=writeBatch(db);SEED.forEach(s=>w.set(doc(db,'products',s[0]),{key:s[0],name:s[1],cat:s[2],short:s[3],price:s[4],old:s[5],active:true}));await w.commit();toast('Products imported')}
+    if(a==='edit'){editId=id||null;const p=products.find(x=>x.id===id)||{active:true},f=$('#pf').elements;$('#dt').textContent=id?'Edit product':'Add product';
+      ['name','cat','short','price','old','imageUrl'].forEach(k=>f[k].value=p[k]??'');f.active.value=p.active===false?'0':'1';$('#dlg').showModal()}
+    if(a==='tog'){const p=products.find(x=>x.id===id);await updateDoc(doc(db,'products',id),{active:p.active===false})}
+    if(a==='del'&&confirm('Delete this product?'))await deleteDoc(doc(db,'products',id));
+    if(a==='edel'&&confirm('Delete this enquiry?'))await deleteDoc(doc(db,'enquiries',id));
+    if(a==='odel'&&confirm('Delete this order?'))await deleteDoc(doc(db,'orders',id));
+    if(a==='savec'){await setDoc(doc(db,'content',$('#pg').value),{heading:$('#c-h').value.trim(),subheading:$('#c-s').value.trim(),body:$('#c-b').value.trim(),email:$('#c-e').value.trim(),phone:$('#c-p').value.trim(),address:$('#c-a').value.trim(),updatedAt:serverTimestamp()});toast('Content saved. Refresh the website to see it.')}
+  }catch(x){toast(x.code==='permission-denied'?'Permission denied. Deploy firestore.rules.':x.message)}
+};
+$('#cx').onclick=()=>$('#dlg').close();
+$('#pf').onsubmit=async e=>{e.preventDefault();const f=e.target.elements,cur=products.find(x=>x.id===editId)||{};
+  const v={name:f.name.value.trim(),cat:f.cat.value.trim(),short:f.short.value.trim(),price:+f.price.value,old:f.old.value?+f.old.value:null,imageUrl:f.imageUrl.value.trim(),active:f.active.value==='1'};
+  if(cur.key)v.key=cur.key;
+  try{editId?await updateDoc(doc(db,'products',editId),v):await addDoc(collection(db,'products'),v);$('#dlg').close();toast('Product saved')}catch(x){toast(x.message)}};
+</script>
+</body></html>

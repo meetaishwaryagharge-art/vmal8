@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Login | VMAL Home Care Products</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g:#2f8d32;--gd:#1f6b25;--r:#e0161b;--ink:#1d1d1b;--mut:#5a5a56;--cream:#fdf6e6;--line:#e8ece8}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;grid-template-columns:1fr 1fr;font:15px/1.6 Poppins,"Segoe UI",Arial,sans-serif;color:var(--ink)}
+.brand{background:var(--gd);color:#fff;display:flex;flex-direction:column;justify-content:center;padding:clamp(24px,6vw,80px)}
+.brand img{width:170px;background:#fff;border-radius:14px;padding:12px;margin-bottom:36px}
+.brand h1{font-size:clamp(28px,3.4vw,44px);line-height:1.15;margin:0 0 14px}
+.brand p{margin:0;max-width:38ch;opacity:.9}
+.pane{background:var(--cream);display:grid;place-items:center;padding:24px}
+form{width:min(400px,100%)}
+h2{margin:0 0 4px;font-size:26px}
+.sub{margin:0 0 24px;color:var(--mut)}
+label{display:block;font-weight:500;margin:14px 0 6px}
+input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;font:inherit;background:#fff}
+input:focus,button:focus-visible{outline:3px solid #2f8d3255;border-color:var(--g)}
+.btn{width:100%;margin-top:20px;padding:13px;border:0;border-radius:10px;background:var(--r);color:#fff;font:600 15px Poppins,sans-serif;cursor:pointer}
+.btn:hover{background:#bf1015}
+.btn.alt{background:#fff;color:var(--ink);border:1.5px solid var(--line);margin-top:10px}
+.btn.alt:hover{background:#f6f6f2}
+.pw{position:relative}.pw button{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--g);font:500 12px Poppins,sans-serif;cursor:pointer;padding:6px 8px}.pw input{padding-right:64px}
+.btn:disabled{opacity:.6;cursor:wait}
+.link{background:none;border:0;color:var(--g);font:500 13px Poppins,sans-serif;cursor:pointer;padding:0;margin-top:12px}
+#msg{min-height:22px;margin-top:14px;font-size:13px;color:var(--r)}
+#msg.ok{color:var(--gd)}
+@media(max-width:800px){body{grid-template-columns:1fr}.brand{padding:28px 24px}.brand img{width:120px;margin-bottom:18px}.brand p{display:none}}
+</style></head>
+<body>
+<section class="brand">
+  <img src="logo.png" alt="VMAL Home Care Products">
+  <h1>Clean Homes.<br>Healthy Lives.</h1>
+  <p>Sign in to manage products, customer enquiries and website content.</p>
+</section>
+<main class="pane">
+  <form id="f" method="post" action="#" novalidate>
+    <h2>Admin Login</h2>
+    <p class="sub">Authorised VMAL team members only.</p>
+    <label for="e">Email</label>
+    <input id="e" name="email" type="email" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@example.com">
+    <label for="p">Password</label>
+    <div class="pw"><input id="p" name="password" type="password" autocomplete="current-password" placeholder="Your password"><button type="button" id="eye" aria-label="Show password">Show</button></div>
+    <button class="btn" type="submit" id="go">Sign In</button>
+    <button class="btn alt" type="button" id="g">Continue with Google</button>
+    <button class="link" type="button" id="reset">Forgot password?</button>
+    <div id="msg" role="status">Loading…</div>
+  </form>
+</main>
+
+<!-- Plain script: runs even if Firebase fails to load, so the form never silently reloads the page -->
+<script>
+window.__loginReady=false;
+document.getElementById('f').addEventListener('submit',function(e){e.preventDefault();
+  if(!window.__loginReady){var m=document.getElementById('msg');m.className='';m.textContent=location.protocol==='file:'
+    ?'This page was opened as a file. Open it through your website address (https://vmal-92673.web.app/login.html) or a local server (VS Code Live Server / firebase serve).'
+    :'Firebase could not load. Check your internet connection and refresh the page.'}
+});
+document.getElementById('eye').onclick=function(){var p=document.getElementById('p'),s=p.type==='password';p.type=s?'text':'password';this.textContent=s?'Hide':'Show'};
+</script>
+<script type="module">
+import {auth,ADMIN_EMAILS} from "./firebase-config.js";
+import {signInWithEmailAndPassword,signInWithPopup,GoogleAuthProvider,sendPasswordResetEmail,onAuthStateChanged,signOut}
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const $=s=>document.querySelector(s);
+const msg=(t,ok)=>{$('#msg').textContent=t;$('#msg').className=ok?'ok':''};
+const busy=on=>{$('#go').disabled=on;$('#g').disabled=on;$('#go').textContent=on?'Signing in…':'Sign In'};
+const nice=e=>({
+  'auth/invalid-credential':'Wrong email or password. If you have not created this admin user yet, add it in Firebase Console > Authentication > Users.',
+  'auth/wrong-password':'Wrong password.',
+  'auth/user-not-found':'No admin user with this email. Create it in Firebase Console > Authentication > Users.',
+  'auth/invalid-email':'Please enter a valid email address.',
+  'auth/missing-password':'Please enter your password.',
+  'auth/user-disabled':'This user has been disabled in Firebase.',
+  'auth/too-many-requests':'Too many attempts. Wait a few minutes and try again.',
+  'auth/operation-not-allowed':'This sign-in method is switched off. Firebase Console > Authentication > Sign-in method > enable Email/Password (and Google).',
+  'auth/unauthorized-domain':'This website address is not allowed. Firebase Console > Authentication > Settings > Authorized domains > add '+location.hostname+'.',
+  'auth/network-request-failed':'Network problem. Check your internet connection.',
+  'auth/popup-blocked':'The browser blocked the Google pop-up. Allow pop-ups for this site and try again.',
+  'auth/popup-closed-by-user':'Sign-in cancelled.',
+  'auth/cancelled-popup-request':'Sign-in cancelled.',
+  'auth/api-key-not-valid.-please-pass-a-valid-api-key.':'The Firebase API key is not valid. Check firebase-config.js.'
+}[e.code]||('Sign-in failed ('+(e.code||e.message)+')'));
+
+window.__loginReady=true;
+if(location.protocol==='file:')msg('Open this page through your website address or a local server. Firebase does not work from file://');
+else if(new URLSearchParams(location.search).has('denied'))msg('This account is not authorised for the dashboard.');
+else msg('');
+
+onAuthStateChanged(auth,u=>{
+  if(!u)return;
+  if(ADMIN_EMAILS.map(x=>x.toLowerCase()).includes((u.email||'').toLowerCase()))location.replace('dashboard.html');
+  else{signOut(auth);msg('This account ('+u.email+') is not authorised for the dashboard.')}
+});
+
+$('#f').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const email=$('#e').value.trim(),pw=$('#p').value;
+  if(!email)return msg('Please enter your email.');
+  if(!pw)return msg('Please enter your password.');
+  msg('Signing in…',1);busy(true);
+  try{await signInWithEmailAndPassword(auth,email,pw)}
+  catch(x){msg(nice(x));busy(false)}
+});
+$('#g').addEventListener('click',async()=>{
+  msg('Opening Google…',1);busy(true);
+  try{await signInWithPopup(auth,new GoogleAuthProvider())}
+  catch(x){msg(nice(x));busy(false)}
+});
+$('#reset').addEventListener('click',async()=>{
+  const v=$('#e').value.trim();if(!v)return msg('Enter your email first.');
+  try{await sendPasswordResetEmail(auth,v);msg('Reset link sent. Check your inbox (and spam).',1)}catch(x){msg(nice(x))}
+});
+</script>
+</body></html>
